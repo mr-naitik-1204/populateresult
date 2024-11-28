@@ -12,7 +12,7 @@ mongoose.connect('mongodb://localhost:27017/naitikkherala')
     .catch((error) => {
         console.error("connection error:", error);
     });
-0.                                             
+                                             
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 

@@ -14,14 +14,77 @@ exports.createdata = async (req, res) => {
             status: "fail",
             Message: "not enter"
         })
-
     }
 }
-
 exports.showdata = async (req, res) => {
-    const showdata = await Usermodal.find()
-
+    // const showdata = await Usermodal.find()
+  
     try {
+
+        const showdata = await Usermodal.aggregate([
+            {
+                $lookup: {
+                    from: 'names', // Correct field name
+                    localField: 'resultid',
+                    foreignField: '_id',
+                    as: 'StudentInfo'
+                }
+            },
+            {
+                $unwind: '$StudentInfo'
+            },
+            {
+                $addFields: {
+                    Total: {
+                        $add: ['$guj', '$eng', '$sci', '$ss', '$maths']
+                    },
+                    Percentage: {
+                        $multiply: [
+                            { $divide: [{ $add: ['$guj', '$eng', '$sci', '$ss', '$maths'] }, 500] },
+                            100
+                        ]
+                    },
+                    max: {
+                        $max: ['$guj', '$eng', '$sci', '$ss', '$maths']
+                    },
+                    min: {
+                        $min: ['$guj', '$eng', '$sci', '$ss', '$maths']
+                    },
+                },
+            },
+            {
+                $addFields: {
+                    Grade: {
+                        $switch: {
+                            branches: [
+                                { case: { $gte: ['$Percentage', 90] }, then: 'A+' },
+                                { case: { $gte: ['$Percentage', 80] }, then: 'A' },
+                                { case: { $gte: ['$Percentage', 70] }, then: 'B+' },
+                                { case: { $gte: ['$Percentage', 60] }, then: 'B' },
+                                { case: { $gte: ['$Percentage', 50] }, then: 'C' },
+                            ],
+                            default: 'F',
+                        },
+                    },
+                    Result: {
+                        $cond: {
+                            if: {
+                                $and: [
+                                    { $gte: ['$guj', 35] },
+                                    { $gte: ['$eng', 35] },
+                                    { $gte: ['$sci', 35] },
+                                    { $gte: ['$ss', 35] },
+                                    { $gte: ['$maths', 35] },
+                                ],
+                            },
+                            then: 'Pass',
+                            else: 'Fail',
+                        },
+                    },
+                },
+            }
+        ]);
+
         res.status(200).json({
             status: "success",
             Message: 'all data show',
@@ -35,43 +98,3 @@ exports.showdata = async (req, res) => {
         })
     }
 }
-exports.deletedata = async (req, res) => {
-    const userId = req.params.id;
-
-    try {
-        const deletedata = await Usermodal.findByIdAndDelete(userId);
-
-        res.status(200).json({
-            status: "success",
-            message: 'Data deleted successfully',
-            data: deletedata
-        });
-    } catch (error) {
-        res.status(500).json({
-            status: "fail",
-            message: error.message,
-            data: []
-        });
-    }
-};
-
-
-exports.updatedata = async (req, res) => {
-    const userId = req.params.id;
-
-    try {
-        const updatedata = await Usermodal.findByIdAndUpdate(userId,req.body);
-
-        res.status(200).json({
-            status: "success",
-            message: 'Data updeted successfully',
-            data: updatedata
-        });
-    } catch (error) {
-        res.status(500).json({
-            status: "fail",
-            message: error.message,
-            data: []
-        });
-    }
-};

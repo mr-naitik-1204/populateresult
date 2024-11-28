@@ -1,12 +1,30 @@
 var mongoose = require('mongoose')
-
+const Name =require('./Name')
 const Schema = new mongoose.Schema({
-
-    gujrati: { type: String },
-    hindi: { type: String },
-    sanskrut: { type: String },
-    english: { type: String },
-    scince: { type: String }
+    guj: {
+        type: Number,
+        required: true
+    },
+    eng: {                        
+        type: Number,
+        required: true
+    },
+    sci: {
+        type: Number,
+        required: true
+    },
+    ss: {
+        type: Number,
+        required: true
+    },
+    maths: {
+        type: Number,
+        required: true
+    },
+    resultid: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: "Name"
+    }
 })
-
 module.exports = mongoose.model('Mark', Schema)
